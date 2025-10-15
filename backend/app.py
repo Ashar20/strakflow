@@ -7,6 +7,7 @@ from typing import Any, Dict, Tuple
 import asyncio
 from dotenv import load_dotenv
 from flask_cors import CORS
+import requests
 
 from flask import Flask, jsonify, request
 
@@ -511,6 +512,77 @@ def create_app() -> Flask:
             "transaction_hash": tx_hash,
             "transaction_url": tx_url,
         }), 200
+
+    @app.route("/build-contract", methods=["POST"])
+    def build_contract():
+        # Accept optional "instructions" to guide the model; default to a simple ERC20-like skeleton
+        body: Dict[str, Any] = request.get_json(silent=True) or {}
+        instructions = body.get("instructions", "Create a minimal Cairo 1.0 contract.")
+
+        api_key = os.getenv("OPENAI_API_KEY")
+        if not api_key:
+            return jsonify({"error": "missing OPENAI_API_KEY in environment"}), 400
+
+        # Strict system prompt: ONLY output a single Cairo contract with required constraints
+        system_prompt = (
+            "You are a code generator that outputs ONLY Cairo 1.x source code. "
+            "Output must be a single complete contract module which is simple and minimal with the exact module name 'YourContract'. "
+            "Do NOT output any prose, explanations, markdown fences, or comments outside the contract. "
+            "Constraints: \n"
+            "- The contract MUST compile with recent Cairo 1.x standards.\n"
+            "- The module name must be exactly: YourContract.\n"
+            "- There must be NO constructor parameters.no constructor required hardcode constructor arguments\n"
+            "- Avoid external dependencies that are not in openzeppelin 2.0 or core starknet std.\n"
+            "- Keep it minimal (a simple storage var and one external function is fine).\n"
+            "Return ONLY the Cairo code (no markdown fences)."
+        )
+
+        user_prompt = (
+            f"Requirements (user provided): {instructions}\n"
+            "Implement a minimal safe contract that satisfies the constraints."
+        )
+
+        try:
+            resp = requests.post(
+                "https://api.openai.com/v1/chat/completions",
+                headers={
+                    "Authorization": f"Bearer {api_key}",
+                    "Content-Type": "application/json",
+                },
+                json={
+                    "model": "gpt-4.1",
+                    "temperature": 0.2,
+                    "messages": [
+                        {"role": "system", "content": system_prompt},
+                        {"role": "user", "content": user_prompt},
+                    ],
+                },
+                timeout=60,
+            )
+        except requests.RequestException as e:
+            return jsonify({"error": "openai request failed", "details": str(e)}), 502
+
+        if resp.status_code != 200:
+            return jsonify({"error": "openai non-200 response", "status": resp.status_code, "body": resp.text}), 502
+
+        data = resp.json()
+        try:
+            contract_code = data["choices"][0]["message"]["content"].strip()
+        except Exception:
+            return jsonify({"error": "unexpected openai response", "body": data}), 502
+
+        # Basic validations
+        if "pub mod YourContract" not in contract_code:
+            return jsonify({"error": "validation failed: module name must be YourContract", "contract": contract_code}), 400
+        # If constructor exists, it must have no parameters other than self
+        if re.search(r"fn\s+constructor\s*\(.*,[^)]*\)", contract_code):
+            return jsonify({"error": "validation failed: constructor must have no parameters", "contract": contract_code}), 400
+
+        # Heuristic: disallow markdown fences
+        if "```" in contract_code:
+            return jsonify({"error": "validation failed: markdown fences not allowed", "contract": contract_code}), 400
+
+        return jsonify({"contract": contract_code}), 200
 
     return app
 
