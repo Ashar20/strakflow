@@ -4,12 +4,16 @@ import re
 import subprocess
 from time import sleep
 from typing import Any, Dict, Tuple
+import asyncio
+from dotenv import load_dotenv
 
 from flask import Flask, jsonify, request
 
 
 def create_app() -> Flask:
     app = Flask(__name__)
+    # Load .env variables
+    load_dotenv()
 
     # Configure basic logging; in production, hook into your centralized logger
     log_level = os.getenv("LOG_LEVEL", "INFO").upper()
@@ -417,6 +421,94 @@ def create_app() -> Flask:
                 "transaction_url": tx_url,
             }
         ), 201
+
+    @app.route("/mint-nft", methods=["POST"])
+    def mint_nft():
+        if not request.is_json:
+            return jsonify({"error": "Expected application/json body"}), 400
+
+        body: Dict[str, Any] = request.get_json(silent=True) or {}
+        contract_address = body.get("contract_address")
+        recipient = body.get("recipient")
+        uri = body.get("uri")
+
+        if not isinstance(contract_address, str) or not contract_address.startswith("0x"):
+            return jsonify({"error": "'contract_address' must be a hex string"}), 400
+        if not isinstance(recipient, str) or not recipient.startswith("0x"):
+            return jsonify({"error": "'recipient' must be a hex string"}), 400
+        if not isinstance(uri, str) or not uri:
+            return jsonify({"error": "'uri' must be a non-empty string"}), 400
+
+        rpc_url = os.getenv("STARKNET_RPC")
+        account_address = os.getenv("STARKNET_ACCOUNT_ADDRESS")
+        private_key_hex = os.getenv("STARKNET_PRIVATE_KEY")
+        chain_id_env = ("SEPOLIA").upper()
+
+        if not rpc_url or not account_address or not private_key_hex:
+            return jsonify({
+                "error": "missing starknet credentials",
+                "hint": "Set STARKNET_RPC, STARKNET_ACCOUNT_ADDRESS, STARKNET_PRIVATE_KEY, optional STARKNET_CHAIN_ID",
+            }), 400
+
+        try:
+            from starknet_py.net.full_node_client import FullNodeClient
+            from starknet_py.net.account.account import Account
+            from starknet_py.contract import Contract
+            from starknet_py.net.client_errors import ClientError
+            from starknet_py.net.signer.stark_curve_signer import KeyPair
+            from starknet_py.net.models import StarknetChainId
+        except Exception as e:
+            return jsonify({
+                "error": "starknet_py not available",
+                "details": str(e),
+                "hint": "pip install starknet-py",
+            }), 500
+
+        chain_id = StarknetChainId.SEPOLIA if chain_id_env == "SEPOLIA" else (
+            StarknetChainId.MAINNET if chain_id_env == "MAINNET" else StarknetChainId.SEPOLIA
+        )
+
+        async def _mint_async() -> Dict[str, Any]:
+            client = FullNodeClient(node_url=rpc_url)
+            account = Account(
+                address=int(account_address, 16),
+                client=client,
+                key_pair=KeyPair.from_private_key(int(private_key_hex, 16)),
+                chain=chain_id,
+            )
+            contract = await Contract.from_address(address=int(contract_address, 16), provider=account)
+
+            try:
+                sent = await contract.functions["mint_item"].invoke_v3(
+                    recipient=int(recipient, 16),
+                    uri=uri,
+                    auto_estimate=True,
+                )
+                # Wait for confirmation
+                await account.client.wait_for_tx(sent.hash)
+            except ClientError as ce:
+                return {"ok": False, "error": str(ce)}
+            except Exception as e:  # noqa: BLE001
+                return {"ok": False, "error": str(e)}
+
+            return {
+                "ok": True,
+                "transaction_hash": hex(sent.hash),
+            }
+
+        result = asyncio.run(_mint_async())
+        if not result.get("ok"):
+            return jsonify({"error": "mint failed", "details": result.get("error")}), 500
+
+        tx_hash = result["transaction_hash"]
+        tx_url = f"https://sepolia.starkscan.co/tx/{tx_hash}"
+        return jsonify({
+            "contract_address": contract_address,
+            "recipient": recipient,
+            "uri": uri,
+            "transaction_hash": tx_hash,
+            "transaction_url": tx_url,
+        }), 200
 
     return app
 
