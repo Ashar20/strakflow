@@ -38,6 +38,60 @@ def create_app() -> Flask:
 
         # Run deployment in the token-contract directory
         token_contract_dir = os.path.join(os.path.dirname(__file__), "token-contract")
+        contract_src_path = os.path.join(token_contract_dir, "src", "erc20_token.cairo")
+
+        # Update constructor values in the Cairo source from request body
+        try:
+            with open(contract_src_path, "r", encoding="utf-8") as f:
+                cairo_src = f.read()
+
+            # Replace name and symbol (ByteArray string literals)
+            updated_src = re.sub(
+                r'let\s+name:\s*ByteArray\s*=\s*".*?";',
+                f'let name: ByteArray = "{name}";',
+                cairo_src,
+                count=1,
+            )
+            updated_src = re.sub(
+                r'let\s+symbol:\s*ByteArray\s*=\s*".*?";',
+                f'let symbol: ByteArray = "{symbol}";',
+                updated_src,
+                count=1,
+            )
+            # Decimals remains 18 by default; only change if provided
+            if "decimals" in payload and payload.get("decimals") is not None:
+                try:
+                    decimals_int = int(payload.get("decimals"))
+                except (TypeError, ValueError):
+                    return jsonify({"error": "'decimals' must be an integer"}), 400
+                updated_src = re.sub(
+                    r"let\s+decimals:\s*u8\s*=\s*\d+;",
+                    f"let decimals: u8 = {decimals_int};",
+                    updated_src,
+                    count=1,
+                )
+
+            # initial_supply from max_token
+            updated_src = re.sub(
+                r"let\s+initial_supply:\s*u256\s*=\s*\d+;",
+                f"let initial_supply: u256 = {max_token_int};",
+                updated_src,
+                count=1,
+            )
+
+            if updated_src == cairo_src:
+                return jsonify({
+                    "error": "contract source unchanged after edit",
+                    "hint": "Regex did not match current constructor lines. Please share current lines around constructor.",
+                    "path": contract_src_path
+                }), 400
+
+            with open(contract_src_path, "w", encoding="utf-8") as f:
+                f.write(updated_src)
+        except FileNotFoundError:
+            return jsonify({"error": "contract source not found", "path": contract_src_path}), 500
+        except OSError as e:
+            return jsonify({"error": "failed to update contract source", "details": str(e)}), 500
 
         def run_cmd(command: str, cwd: str) -> Tuple[int, str, str]:
             completed = subprocess.run(

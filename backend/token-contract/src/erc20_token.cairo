@@ -54,10 +54,10 @@ pub mod MyToken {
 
     #[constructor]
     fn constructor(ref self: ContractState) {
-        let name: ByteArray = "MyToken1";
-        let symbol: ByteArray = "MTK1";
+        let name: ByteArray = "PHILOTHEEPHILIX";
+        let symbol: ByteArray = "PHI";
         let decimals: u8 = 18;
-        let initial_supply: u256 = 0;
+        let initial_supply: u256 = 1000000;
 
         StoragePointerWriteAccess::write(self.name, name);
         StoragePointerWriteAccess::write(self.symbol, symbol);
