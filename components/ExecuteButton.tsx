@@ -6,6 +6,12 @@ import { BlockType, BlockValues } from "@/types";
 import { validateWallet } from "@/services/validateWallet";
 import { validateReceiverAddress } from "@/services/validateReceiver";
 import { transferToken } from "@/services/transferToken";
+import {
+  createToken,
+  deployContract,
+  deployNFT,
+  mintNFT,
+} from "@/services/contractDeployment";
 
 interface ExecuteButtonProps {
   blocks: BlockType[];
@@ -257,6 +263,146 @@ const ExecuteButton: React.FC<ExecuteButtonProps> = ({
       onLog(`✓ Connected to ${walletType}`, "success");
       if (wallet?.address) {
         onLog(`Address: ${wallet.address}`, "info");
+      }
+    } else if (block.id === "create_token") {
+      const tokenName = blockValues["Token Name"];
+      const tokenSymbol = blockValues["Token Symbol"];
+      const maxSupply = blockValues["Max Supply"];
+      const decimals = blockValues["Decimals"] || "18";
+      
+      if (!tokenName || !tokenSymbol || !maxSupply) {
+        throw new Error("Token name, symbol, and max supply are required");
+      }
+      
+      onLog(`🪙 Creating ERC20 token...`, "info");
+      onLog(`   Name: ${tokenName}`, "info");
+      onLog(`   Symbol: ${tokenSymbol}`, "info");
+      onLog(`   Max Supply: ${maxSupply}`, "info");
+      onLog(`   Decimals: ${decimals}`, "info");
+      
+      try {
+        const result = await createToken({
+          name: tokenName,
+          symbol: tokenSymbol,
+          max_token: parseInt(maxSupply),
+          decimals: parseInt(decimals),
+        });
+        
+        if (result.success) {
+          onLog(`✓ Token created successfully!`, "success");
+          if (result.contractAddress) {
+            onLog(`   Contract Address: ${result.contractAddress}`, "success");
+          }
+          if (result.transactionHash) {
+            onLog(`   Transaction Hash: ${result.transactionHash}`, "info");
+          }
+        } else {
+          throw new Error(result.error || "Token creation failed");
+        }
+      } catch (error) {
+        onLog(`✗ Token creation failed: ${error instanceof Error ? error.message : "Unknown error"}`, "error");
+        throw error;
+      }
+    } else if (block.id === "deploy_contract") {
+      const cairoCode = blockValues["Cairo Contract Code"];
+      const contractName = blockValues["Contract Name"] || "Custom Contract";
+      
+      if (!cairoCode) {
+        throw new Error("Cairo contract code is required");
+      }
+      
+      onLog(`📄 Deploying Cairo contract...`, "info");
+      onLog(`   Name: ${contractName}`, "info");
+      
+      try {
+        const result = await deployContract({
+          cairoCode: cairoCode,
+          contractName: contractName,
+        });
+        
+        if (result.success) {
+          onLog(`✓ Contract deployed successfully!`, "success");
+          if (result.contractAddress) {
+            onLog(`   Contract Address: ${result.contractAddress}`, "success");
+          }
+          if (result.transactionHash) {
+            onLog(`   Transaction Hash: ${result.transactionHash}`, "info");
+          }
+        } else {
+          throw new Error(result.error || "Contract deployment failed");
+        }
+      } catch (error) {
+        onLog(`✗ Contract deployment failed: ${error instanceof Error ? error.message : "Unknown error"}`, "error");
+        throw error;
+      }
+    } else if (block.id === "deploy_nft") {
+      const nftName = blockValues["NFT Name"];
+      const nftSymbol = blockValues["NFT Symbol"];
+      const baseUri = blockValues["Base URI"];
+      
+      if (!nftName || !nftSymbol || !baseUri) {
+        throw new Error("NFT name, symbol, and base URI are required");
+      }
+      
+      onLog(`🖼️ Deploying NFT collection...`, "info");
+      onLog(`   Name: ${nftName}`, "info");
+      onLog(`   Symbol: ${nftSymbol}`, "info");
+      onLog(`   Base URI: ${baseUri}`, "info");
+      
+      try {
+        const result = await deployNFT({
+          name: nftName,
+          symbol: nftSymbol,
+          base_uri: baseUri,
+        });
+        
+        if (result.success) {
+          onLog(`✓ NFT collection deployed successfully!`, "success");
+          if (result.contractAddress) {
+            onLog(`   Contract Address: ${result.contractAddress}`, "success");
+          }
+          if (result.transactionHash) {
+            onLog(`   Transaction Hash: ${result.transactionHash}`, "info");
+          }
+        } else {
+          throw new Error(result.error || "NFT deployment failed");
+        }
+      } catch (error) {
+        onLog(`✗ NFT deployment failed: ${error instanceof Error ? error.message : "Unknown error"}`, "error");
+        throw error;
+      }
+    } else if (block.id === "mint_nft") {
+      const contractAddress = blockValues["NFT Contract Address"];
+      const recipientAddress = blockValues["Recipient Address"];
+      const tokenUri = blockValues["Token URI"];
+      
+      if (!contractAddress || !recipientAddress || !tokenUri) {
+        throw new Error("Contract address, recipient address, and token URI are required");
+      }
+      
+      onLog(`🎨 Minting NFT...`, "info");
+      onLog(`   Contract: ${contractAddress}`, "info");
+      onLog(`   Recipient: ${recipientAddress}`, "info");
+      onLog(`   URI: ${tokenUri}`, "info");
+      
+      try {
+        const result = await mintNFT({
+          contract_address: contractAddress,
+          recipient: recipientAddress,
+          uri: tokenUri,
+        });
+        
+        if (result.success) {
+          onLog(`✓ NFT minted successfully!`, "success");
+          if (result.transactionHash) {
+            onLog(`   Transaction Hash: ${result.transactionHash}`, "info");
+          }
+        } else {
+          throw new Error(result.error || "NFT minting failed");
+        }
+      } catch (error) {
+        onLog(`✗ NFT minting failed: ${error instanceof Error ? error.message : "Unknown error"}`, "error");
+        throw error;
       }
     } else {
       onLog(`✓ ${block.name} completed`, "success");

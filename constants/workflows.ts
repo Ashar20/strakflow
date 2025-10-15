@@ -11,6 +11,10 @@ import {
   BarChart3,
   ArrowRightLeft,
   UserCheck,
+  Package,
+  Code,
+  Image,
+  Sparkles,
 } from "lucide-react";
 import { BlockType } from "@/types";
 
@@ -323,6 +327,127 @@ export const blocks: BlockType[] = [
       },
     ],
     compatibleWith: [],
+  },
+  {
+    id: "create_token",
+    name: "Create Token",
+    color: "from-amber-400 to-amber-600",
+    icon: Sparkles,
+    description: "Create a new ERC20 token on Starknet",
+    category: "contract",
+    technology: "Starknet",
+    inputs: [
+      {
+        type: "text",
+        label: "Token Name",
+        placeholder: "MyToken",
+        required: true,
+      },
+      {
+        type: "text",
+        label: "Token Symbol",
+        placeholder: "MTK",
+        required: true,
+      },
+      {
+        type: "number",
+        label: "Max Supply",
+        placeholder: "1000000",
+        required: true,
+      },
+      {
+        type: "number",
+        label: "Decimals",
+        placeholder: "18",
+        required: true,
+        defaultValue: "18",
+      },
+    ],
+    compatibleWith: ["check_tx_status", "transaction_summary"],
+  },
+  {
+    id: "deploy_contract",
+    name: "Deploy Contract",
+    color: "from-sky-400 to-sky-600",
+    icon: Code,
+    description: "Deploy a custom Cairo smart contract",
+    category: "contract",
+    technology: "Starknet",
+    inputs: [
+      {
+        type: "textarea",
+        label: "Cairo Contract Code",
+        placeholder: "#[starknet::contract]\npub mod YourContract {\n  ...\n}",
+        required: true,
+      },
+      {
+        type: "text",
+        label: "Contract Name",
+        placeholder: "MyContract",
+        required: false,
+      },
+    ],
+    compatibleWith: ["check_tx_status", "transaction_summary"],
+  },
+  {
+    id: "deploy_nft",
+    name: "Deploy NFT",
+    color: "from-fuchsia-400 to-fuchsia-600",
+    icon: Image,
+    description: "Deploy an ERC721 NFT collection on Starknet",
+    category: "contract",
+    technology: "Starknet",
+    inputs: [
+      {
+        type: "text",
+        label: "NFT Name",
+        placeholder: "MyNFT",
+        required: true,
+      },
+      {
+        type: "text",
+        label: "NFT Symbol",
+        placeholder: "MNFT",
+        required: true,
+      },
+      {
+        type: "text",
+        label: "Base URI",
+        placeholder: "https://ipfs.io/ipfs/BASE/",
+        required: true,
+      },
+    ],
+    compatibleWith: ["mint_nft", "check_tx_status"],
+  },
+  {
+    id: "mint_nft",
+    name: "Mint NFT",
+    color: "from-rose-400 to-rose-600",
+    icon: Package,
+    description: "Mint an NFT from a deployed collection",
+    category: "contract",
+    technology: "Starknet",
+    inputs: [
+      {
+        type: "address",
+        label: "NFT Contract Address",
+        placeholder: "0x... (deployed NFT contract)",
+        required: true,
+      },
+      {
+        type: "address",
+        label: "Recipient Address",
+        placeholder: "0x... (receiver wallet)",
+        required: true,
+      },
+      {
+        type: "text",
+        label: "Token URI",
+        placeholder: "ipfs://QmExample...",
+        required: true,
+      },
+    ],
+    compatibleWith: ["check_tx_status", "transaction_summary"],
   },
 ];
 
