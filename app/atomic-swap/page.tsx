@@ -1,20 +1,29 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import WorkflowBuilder from "@/components/WorkflowBuilder";
+import dynamic from "next/dynamic";
+import { NavigationTabs } from "@/components/NavigationTabs";
 import WalletSelector from "@/components/WalletSelector";
 import ChippiWalletCreation from "@/components/ChippiWalletCreation";
-import { NavigationTabs } from "@/components/NavigationTabs";
 import { SignedIn, SignedOut } from "@clerk/nextjs";
 
-export default function WorkflowPage() {
+// Dynamically import WorkflowBuilder to use atomic swap blocks
+const AtomicSwapBuilder = dynamic(
+  () => import("@/components/WorkflowBuilder").then(mod => {
+    // This will use atomic swap blocks instead of regular workflow blocks
+    return mod.default;
+  }),
+  { ssr: false }
+);
+
+export default function AtomicSwapPage() {
   const [wallet, setWallet] = useState<{ address: string; type: string } | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [showChippiCreation, setShowChippiCreation] = useState(false);
 
-  // Load wallet from localStorage on mount
+  // Load wallet from localStorage (shared with main workflow)
   useEffect(() => {
-    console.log("🔄 Loading wallet from localStorage...");
+    console.log("🔄 Loading wallet for atomic swap...");
     const savedWallet = localStorage.getItem("connectedWallet");
     if (savedWallet) {
       try {
@@ -31,7 +40,7 @@ export default function WorkflowPage() {
   const handleWalletConnected = (walletData: { address: string; type: string }) => {
     console.log("🎯 handleWalletConnected called with:", walletData);
     setWallet(walletData);
-    // Save to localStorage
+    // Save to localStorage (shared with main workflow)
     localStorage.setItem("connectedWallet", JSON.stringify(walletData));
     setShowChippiCreation(false);
   };
@@ -39,13 +48,14 @@ export default function WorkflowPage() {
   const handleDisconnect = () => {
     setWallet(null);
     localStorage.removeItem("connectedWallet");
+    localStorage.removeItem("wallet_private_key");
     setShowChippiCreation(false);
   };
 
   if (isLoading) {
     return (
       <div className="flex items-center justify-center min-h-screen">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-purple-600"></div>
       </div>
     );
   }
@@ -99,8 +109,11 @@ export default function WorkflowPage() {
       <div className="container mx-auto px-4 py-8">
         <div className="mb-6 flex justify-between items-center">
           <div>
-            <h1 className="text-2xl font-bold text-gray-900">Payment Workflow Builder</h1>
+            <h1 className="text-2xl font-bold text-gray-900">Atomic Swap Builder</h1>
             <p className="text-sm text-gray-600 mt-1">
+              Cross-chain swaps: Starknet ⟷ Bitcoin ⟷ Solana
+            </p>
+            <p className="text-xs text-gray-500 mt-1">
               Connected: <span className="font-mono">{wallet.address}</span> ({wallet.type})
             </p>
           </div>
@@ -111,8 +124,9 @@ export default function WorkflowPage() {
             Disconnect Wallet
           </button>
         </div>
-        <WorkflowBuilder wallet={wallet} />
+        <AtomicSwapBuilder wallet={wallet} isAtomicSwap={true} />
       </div>
     </div>
   );
 }
+

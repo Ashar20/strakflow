@@ -4,6 +4,7 @@ import {
   getBlocksByTechnology,
   blocks,
 } from "@/constants/workflows";
+import { atomicSwapBlocks } from "@/constants/atomicSwapBlocks";
 import { Folder, RotateCcw, Key } from "lucide-react";
 import React, { useEffect, useRef, useState } from "react";
 import WorkflowPiece from "./WorkflowPiece";
@@ -167,11 +168,16 @@ const AvailablePieces: React.FC<{
 
 interface WorkflowBuilderProps {
   wallet?: { address: string; type: string };
+  isAtomicSwap?: boolean;
 }
 
-const WorkflowBuilder: React.FC<WorkflowBuilderProps> = ({ wallet }) => {
+const WorkflowBuilder: React.FC<WorkflowBuilderProps> = ({ wallet, isAtomicSwap = false }) => {
   // Debug: Log wallet prop
   console.log("🐛 DEBUG: WorkflowBuilder received wallet:", wallet);
+  console.log("🐛 DEBUG: isAtomicSwap:", isAtomicSwap);
+  
+  // Use atomic swap blocks or regular workflow blocks
+  const availableBlocks = isAtomicSwap ? atomicSwapBlocks : blocks;
   
   const [chainBlocks, setChainBlocks] = useState<BlockType[]>([]);
   const [draggedBlock, setDraggedBlock] = useState<BlockType | null>(null);
