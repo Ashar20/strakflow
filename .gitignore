@@ -2,3 +2,4 @@
 *.md
 /backend/token-contract/target
 /backend/contract-deployment/target
+/backend/openzeppelin-nft/target
