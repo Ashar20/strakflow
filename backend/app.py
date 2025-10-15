@@ -6,6 +6,7 @@ from time import sleep
 from typing import Any, Dict, Tuple
 import asyncio
 from dotenv import load_dotenv
+from flask_cors import CORS
 
 from flask import Flask, jsonify, request
 
@@ -14,6 +15,7 @@ def create_app() -> Flask:
     app = Flask(__name__)
     # Load .env variables
     load_dotenv()
+    CORS(app)
 
     # Configure basic logging; in production, hook into your centralized logger
     log_level = os.getenv("LOG_LEVEL", "INFO").upper()
