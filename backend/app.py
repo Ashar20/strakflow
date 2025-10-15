@@ -256,7 +256,7 @@ def create_app() -> Flask:
                     contract_addr_count = len(re.findall(r":\s*ContractAddress\b", params_text))
                     if contract_addr_count > 0:
                         calldata_parts.extend(["0x0"] * contract_addr_count)
-            calldata_arg = f" --calldata {' '.join(calldata_parts)}" if calldata_parts else ""
+            calldata_arg = f" --constructor-calldata {' '.join(calldata_parts)}" if calldata_parts else ""
         except Exception:
             calldata_arg = ""
 
@@ -276,6 +276,141 @@ def create_app() -> Flask:
 
         return jsonify(
             {
+                "class_hash": class_hash,
+                "contract_address": contract_address,
+                "transaction_hash": transaction_hash,
+                "transaction_url": tx_url,
+            }
+        ), 201
+
+    @app.route("/deploy-nft", methods=["POST"])
+    def deploy_nft():
+        if not request.is_json:
+            return jsonify({"error": "Expected application/json body"}), 400
+
+        body: Dict[str, Any] = request.get_json(silent=True) or {}
+        name = body.get("name")
+        symbol = body.get("symbol")
+        base_uri = body.get("base_uri")
+
+        if not isinstance(name, str) or not isinstance(symbol, str) or not isinstance(base_uri, str):
+            return jsonify({"error": "'name', 'symbol', and 'base_uri' must be strings"}), 400
+
+        # Owner will be hardcoded in contract; no owner in request is required
+
+        project_dir = os.path.join(os.path.dirname(__file__), "openzeppelin-nft")
+        contract_path = os.path.join(project_dir, "src", "your_collectible.cairo")
+
+        # Update constructor literals in your_collectible.cairo
+        try:
+            with open(contract_path, "r", encoding="utf-8") as f:
+                cairo_src = f.read()
+
+            updated_src = re.sub(
+                r'let\s+name:\s*ByteArray\s*=\s*".*?";',
+                f'let name: ByteArray = "{name}";',
+                cairo_src,
+                count=1,
+            )
+            updated_src = re.sub(
+                r'let\s+symbol:\s*ByteArray\s*=\s*".*?";',
+                f'let symbol: ByteArray = "{symbol}";',
+                updated_src,
+                count=1,
+            )
+
+            # Remove owner param from constructor signature
+            updated_src = re.sub(
+                r"fn\s+constructor\(ref\s+self:\s*ContractState\s*,\s*owner:\s*ContractAddress\)",
+                "fn constructor(ref self: ContractState)",
+                updated_src,
+                count=1,
+            )
+            # Hardcode owner before initializer
+            updated_src = re.sub(
+                r"self\.ownable\.initializer\(\s*owner\s*\);",
+                (
+                    "let owner: ContractAddress = "
+                    "0x04C23F4996013A9A52C78B9f5Ae4D116AC1cb70BB1ED36e193E2901C6479e626"
+                    ".try_into().unwrap();\n        self.ownable.initializer(owner);"
+                ),
+                updated_src,
+                count=1,
+            )
+            updated_src = re.sub(
+                r'let\s+base_uri:\s*ByteArray\s*=\s*".*?";',
+                f'let base_uri: ByteArray = "{base_uri}";',
+                updated_src,
+                count=1,
+            )
+
+            with open(contract_path, "w", encoding="utf-8") as f:
+                f.write(updated_src)
+        except FileNotFoundError:
+            return jsonify({"error": "contract source not found", "path": contract_path}), 500
+        except OSError as e:
+            return jsonify({"error": "failed to update contract source", "details": str(e)}), 500
+
+        def run_cmd(command: str, cwd: str) -> Tuple[int, str, str]:
+            completed = subprocess.run(
+                command,
+                cwd=cwd,
+                shell=True,
+                text=True,
+                stdout=subprocess.PIPE,
+                stderr=subprocess.PIPE,
+            )
+            logger.info("Command: %s", command)
+            if completed.stdout:
+                logger.info("STDOUT:\n%s", completed.stdout)
+            if completed.stderr:
+                logger.info("STDERR:\n%s", completed.stderr)
+            return completed.returncode, completed.stdout, completed.stderr
+
+        # Build the NFT project
+        code, out, err = run_cmd("scarb build", cwd=project_dir)
+        if code != 0:
+            return jsonify({"error": "scarb build failed", "stdout": out, "stderr": err}), 500
+
+        # Declare YourCollectible
+        declare_cmd = "sncast --account=sepolia declare --contract-name=YourCollectible --network=sepolia"
+        code, out, err = run_cmd(declare_cmd, cwd=project_dir)
+        if code != 0 and "already declared" not in (err + out):
+            return jsonify({"error": "declare failed", "stdout": out, "stderr": err}), 500
+
+        class_hash_match = re.search(r"Class Hash:\s*(0x[0-9a-fA-F]+)", out + "\n" + err)
+        if not class_hash_match:
+            fallback_match = re.findall(r"0x[0-9a-fA-F]{10,}", out + "\n" + err)
+            class_hash = fallback_match[-1] if fallback_match else None
+        else:
+            class_hash = class_hash_match.group(1)
+
+        if not class_hash:
+            return jsonify({"error": "could not determine class hash from declare output", "stdout": out, "stderr": err}), 500
+
+        # No constructor calldata required (owner hardcoded)
+        calldata_arg = ""
+
+        sleep(30)
+        deploy_cmd = f"sncast --account=sepolia deploy --class-hash {class_hash} --salt 0x1 --network sepolia{calldata_arg}"
+        code, out, err = run_cmd(deploy_cmd, cwd=project_dir)
+        if code != 0:
+            return jsonify({"error": "deploy failed", "stdout": out, "stderr": err}), 500
+
+        address_match = re.search(r"Contract Address:\s*(0x[0-9a-fA-F]+)", out)
+        tx_hash_match = re.search(r"Transaction Hash:\s*(0x[0-9a-fA-F]+)", out)
+        contract_address = address_match.group(1) if address_match else None
+        transaction_hash = tx_hash_match.group(1) if tx_hash_match else None
+        if not contract_address or not transaction_hash:
+            return jsonify({"error": "could not parse deploy output", "stdout": out, "stderr": err}), 500
+
+        tx_url = f"https://sepolia.starkscan.co/tx/{transaction_hash}"
+
+        return jsonify(
+            {
+                "name": name,
+                "symbol": symbol,
+                "base_uri": base_uri,
                 "class_hash": class_hash,
                 "contract_address": contract_address,
                 "transaction_hash": transaction_hash,
