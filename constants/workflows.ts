@@ -36,7 +36,7 @@ export const blocks: BlockType[] = [
         defaultValue: "ChippyPay Wallet",
       },
     ],
-    compatibleWith: ["validate_wallet", "import_csv"],
+    compatibleWith: ["validate_wallet", "import_csv", "create_token", "deploy_contract", "deploy_nft"],
   },
   {
     id: "validate_wallet",
@@ -62,7 +62,7 @@ export const blocks: BlockType[] = [
         defaultValue: "Check ETH Only",
       },
     ],
-    compatibleWith: ["import_csv", "validate_receiver", "transfer_token"],
+    compatibleWith: ["import_csv", "validate_receiver", "transfer_token", "create_token", "deploy_contract", "deploy_nft"],
   },
   {
     id: "validate_receiver",
