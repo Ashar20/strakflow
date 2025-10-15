@@ -11,7 +11,8 @@
 - **Address Validation:** Comprehensive validation for Starknet addresses
 - **Real-time Monitoring:** Track execution progress with detailed logs
 - **Transaction Reports:** Export detailed reports in CSV, JSON, or PDF format
-- **Starknet Integration:** Native support for ArgentX and Braavos wallets
+- **Chippy Pay Wallet:** Built-in wallet creation with username/password auth and recovery phrases
+- **External Wallet Support:** Native support for ArgentX and Braavos wallets
 - **Neobrutalist Design:** Modern, bold UI inspired by B4B project
 
 ## 📋 Workflow Steps
@@ -34,7 +35,7 @@ The workflow builder supports the following steps:
 ### Prerequisites
 
 - Node.js 18+ or Bun
-- A Starknet wallet (ArgentX or Braavos)
+- Optional: A Starknet wallet (ArgentX or Braavos) - or create a Chippy Pay wallet!
 
 ### Installation
 
@@ -145,7 +146,16 @@ The project uses a **neobrutalist design** style with:
 - **CSV Parsing:** PapaParse
 - **Icons:** Lucide React
 
-## 🌐 Starknet Integration
+## 🌐 Wallet & Starknet Integration
+
+### Chippy Pay Wallet Creation 🎉
+
+Chippy Pay includes **its own wallet creation system** alongside external wallet support:
+
+- ✅ **Create New Wallets** - Username/password authentication
+- ✅ **Recovery Phrases** - 12-word BIP39-style backup
+- ✅ **Secure Storage** - Encrypted private key management
+- ✅ **Multiple Options** - Chippy Pay, ArgentX, or Braavos
 
 ### Native Multicall - No Custom Contract Required! 🎉
 
@@ -157,7 +167,7 @@ Chippy Pay uses **Starknet's native Account Abstraction** for batch transfers. U
 - ✅ **50-90% cheaper gas costs**
 - ✅ **Atomic execution (all succeed or all fail)**
 
-See [docs/MULTICALL.md](./docs/MULTICALL.md) for detailed explanation.
+See [docs/MULTICALL.md](./docs/MULTICALL.md) for multicall details and [docs/WALLET_CREATION.md](./docs/WALLET_CREATION.md) for wallet creation.
 
 ### Production Integration
 

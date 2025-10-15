@@ -164,7 +164,11 @@ const AvailablePieces: React.FC<{
   );
 };
 
-const WorkflowBuilder: React.FC = () => {
+interface WorkflowBuilderProps {
+  wallet?: { address: string; type: string };
+}
+
+const WorkflowBuilder: React.FC<WorkflowBuilderProps> = ({ wallet }) => {
   const [chainBlocks, setChainBlocks] = useState<BlockType[]>([]);
   const [draggedBlock, setDraggedBlock] = useState<BlockType | null>(null);
   const [blockValues, setBlockValues] = useState<BlockValues>({});
@@ -222,6 +226,20 @@ const WorkflowBuilder: React.FC = () => {
     <div className="min-h-screen bg-[#FFFDFA] p-8">
       <div className="max-w-6xl mx-auto space-y-8">
         <div className="text-center space-y-4">
+          <div className="flex items-center justify-center gap-3 mb-4">
+            <div className="px-4 py-2 bg-green-100 rounded-lg border-2 border-green-500">
+              <span className="text-green-700 font-semibold">
+                ✅ Connected: {wallet?.type} - {wallet?.address.slice(0, 10)}...
+              </span>
+            </div>
+            {wallet?.type === "ChippyPay Wallet" && (
+              <div className="px-4 py-2 bg-purple-100 rounded-lg border-2 border-purple-500">
+                <span className="text-purple-700 font-semibold">
+                  🪙 CHIPPY Token Ready
+                </span>
+              </div>
+            )}
+          </div>
           <p className="text-gray-600 font-medium text-lg">
             Drag and drop blocks to create your payment workflow
           </p>
