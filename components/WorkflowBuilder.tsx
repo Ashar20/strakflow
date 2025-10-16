@@ -203,9 +203,11 @@ const WorkflowBuilder: React.FC<WorkflowBuilderProps> = ({ wallet, isAtomicSwap 
   // Auto-add Connect Wallet block if wallet is connected
   useEffect(() => {
     if (wallet && !initialized && chainBlocks.length === 0) {
-      const connectWalletBlock = getBlocksByTechnology("Starknet").find(
-        (b) => b.id === "connect_wallet"
-      );
+      const connectWalletBlockId = isAtomicSwap ? "connect_wallet_swap" : "connect_wallet";
+      const connectWalletBlock = isAtomicSwap 
+        ? atomicSwapBlocks.find((b) => b.id === connectWalletBlockId)
+        : getBlocksByTechnology("Starknet").find((b) => b.id === connectWalletBlockId);
+      
       if (connectWalletBlock) {
         setChainBlocks([connectWalletBlock]);
         setBlockValues({
@@ -220,7 +222,7 @@ const WorkflowBuilder: React.FC<WorkflowBuilderProps> = ({ wallet, isAtomicSwap 
         setInitialized(true);
       }
     }
-  }, [wallet, initialized, chainBlocks.length]);
+  }, [wallet, initialized, chainBlocks.length, isAtomicSwap]);
 
   const resetChain = () => {
     setChainBlocks([]);

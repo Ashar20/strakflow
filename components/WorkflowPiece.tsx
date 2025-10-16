@@ -49,6 +49,16 @@ const WorkflowPiece: React.FC<WorkflowPieceProps> = ({
   const canBeAddedToChain = () => {
     if (chainBlocks.length === 0) return true;
     const lastBlock = chainBlocks[chainBlocks.length - 1];
+    
+    // Debug logging
+    console.log("🐛 canBeAddedToChain debug:", {
+      isAtomicSwap,
+      blockId: block.id,
+      lastBlockId: lastBlock.id,
+      lastBlockCompatibleWith: lastBlock.compatibleWith,
+      isCompatible: lastBlock.compatibleWith.includes(block.id)
+    });
+    
     return lastBlock.compatibleWith.includes(block.id);
   };
 
