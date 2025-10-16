@@ -21,6 +21,11 @@ export async function connectStarknetWallet(
   try {
     console.log(`🔌 Attempting to connect to ${walletId}...`);
 
+    // Check if window is available
+    if (typeof window === "undefined") {
+      throw new Error("Window object not available");
+    }
+
     // Use get-starknet to connect to the specific wallet
     const wallet = await connect({
       modalMode: "alwaysAsk",
@@ -28,17 +33,21 @@ export async function connectStarknetWallet(
       include: [walletId],
     });
 
-    if (!wallet || !wallet.isConnected) {
-      throw new Error(`Failed to connect to ${walletId}`);
+    if (!wallet) {
+      throw new Error(`${walletId} wallet not found or connection cancelled`);
     }
 
+    // Enable the wallet connection
     await wallet.enable();
 
-    // Get the account address
+    // Wait a bit for the wallet to be fully ready
+    await new Promise(resolve => setTimeout(resolve, 500));
+
+    // Get the account address from the wallet
     const address = wallet.selectedAddress || wallet.account?.address;
 
     if (!address) {
-      throw new Error("No address found in wallet");
+      throw new Error("No address found in wallet. Please make sure your wallet is unlocked and has an account.");
     }
 
     console.log(`✅ Connected to ${walletId}:`, address);
@@ -48,8 +57,16 @@ export async function connectStarknetWallet(
       type: walletId === "argentX" ? "ArgentX" : "Braavos",
       chainId: wallet.chainId,
     };
-  } catch (error) {
+  } catch (error: any) {
     console.error(`❌ Failed to connect to ${walletId}:`, error);
+    
+    // Provide more helpful error messages
+    if (error.message?.includes("User abort")) {
+      throw new Error("Connection cancelled by user");
+    } else if (error.message?.includes("not found")) {
+      throw new Error(`${walletId === "argentX" ? "ArgentX" : "Braavos"} extension not found. Please install it first.`);
+    }
+    
     throw error;
   }
 }
@@ -210,14 +227,19 @@ export async function connectWalletExtension(
   const solanaWallets = ["Phantom", "Backpack"];
 
   if (starknetWallets.includes(walletType)) {
-    const walletId = walletType.toLowerCase() as "argentX" | "braavos";
-    const walletIdMap = { argentx: "argentX", braavos: "braavos" };
-    const mappedId = walletIdMap[walletId] as "argentX" | "braavos";
+    // Map wallet type to correct ID format
+    const walletIdMap: Record<string, "argentX" | "braavos"> = { 
+      "ArgentX": "argentX", 
+      "Braavos": "braavos" 
+    };
+    const mappedId = walletIdMap[walletType];
 
+    // Check if wallet is installed before trying to connect
     if (!isStarknetWalletInstalled(mappedId)) {
+      console.log(`⚠️ ${walletType} not installed, opening install page...`);
       openWalletInstallPage(walletType);
       throw new Error(
-        `${walletType} is not installed. Please install the extension and try again.`
+        `${walletType} is not installed. Opening installation page... Please install the extension and refresh the page.`
       );
     }
 

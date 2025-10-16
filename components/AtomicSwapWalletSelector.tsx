@@ -32,7 +32,19 @@ export default function AtomicSwapWalletSelector({
       });
     } catch (err: any) {
       console.error(`❌ Failed to connect to ${walletType}:`, err);
-      setError(err.message || `Failed to connect to ${walletType}`);
+      
+      let errorMessage = err.message || `Failed to connect to ${walletType}`;
+      
+      // Add helpful hints based on error type
+      if (errorMessage.includes("not installed")) {
+        errorMessage += "\n\n💡 Tip: After installing, refresh this page and try again.";
+      } else if (errorMessage.includes("cancelled")) {
+        errorMessage = "Connection cancelled. Please try again when ready.";
+      } else if (errorMessage.includes("No address found")) {
+        errorMessage = "No wallet account found. Please create an account in your wallet extension first.";
+      }
+      
+      setError(errorMessage);
     } finally {
       setIsConnecting(false);
     }
@@ -65,9 +77,9 @@ export default function AtomicSwapWalletSelector({
         {error && (
           <div className="mb-6 p-4 bg-red-50 border border-red-200 rounded-lg flex items-start gap-3">
             <AlertCircle className="w-5 h-5 text-red-600 flex-shrink-0 mt-0.5" />
-            <div>
+            <div className="flex-1">
               <p className="text-sm text-red-800 font-medium">Connection Failed</p>
-              <p className="text-sm text-red-600 mt-1">{error}</p>
+              <p className="text-sm text-red-600 mt-1 whitespace-pre-line">{error}</p>
             </div>
           </div>
         )}
