@@ -44,7 +44,7 @@ export const atomicSwapBlocks: BlockType[] = [
     icon: ArrowLeftRight,
     description: "Choose source and destination tokens for atomic swap",
     category: "swap",
-    technology: "Atomiq",
+    technology: "swap",
     inputs: [
       {
         type: "select",
@@ -90,7 +90,7 @@ export const atomicSwapBlocks: BlockType[] = [
     icon: Coins,
     description: "Fetch real-time atomic swap quote from Atomiq",
     category: "swap",
-    technology: "Atomiq",
+    technology: "swap",
     inputs: [
       {
         type: "select",
@@ -116,7 +116,7 @@ export const atomicSwapBlocks: BlockType[] = [
     icon: CheckCircle,
     description: "Verify swap quote details, fees, and rates",
     category: "validation",
-    technology: "Atomiq",
+    technology: "validation",
     inputs: [
       {
         type: "select",
@@ -135,7 +135,7 @@ export const atomicSwapBlocks: BlockType[] = [
     icon: Network,
     description: "Execute trustless atomic swap across chains",
     category: "swap",
-    technology: "Atomiq",
+    technology: "swap",
     inputs: [
       {
         type: "select",
@@ -162,7 +162,7 @@ export const atomicSwapBlocks: BlockType[] = [
     icon: Clock,
     description: "Monitor atomic swap progress across chains",
     category: "monitoring",
-    technology: "Atomiq",
+    technology: "monitoring",
     inputs: [
       {
         type: "number",
@@ -189,7 +189,7 @@ export const atomicSwapBlocks: BlockType[] = [
     icon: BarChart3,
     description: "View detailed atomic swap transaction summary",
     category: "reporting",
-    technology: "Atomiq",
+    technology: "reporting",
     inputs: [
       {
         type: "select",
@@ -215,7 +215,7 @@ export const atomicSwapBlocks: BlockType[] = [
     icon: Bitcoin,
     description: "Atomic swap from Bitcoin to Starknet (BTC → ETH/STRK)",
     category: "swap",
-    technology: "Atomiq",
+    technology: "swap",
     inputs: [
       {
         type: "number",
@@ -246,7 +246,7 @@ export const atomicSwapBlocks: BlockType[] = [
     icon: Bitcoin,
     description: "Atomic swap from Starknet to Bitcoin (ETH/STRK → BTC)",
     category: "swap",
-    technology: "Atomiq",
+    technology: "swap",
     inputs: [
       {
         type: "select",
@@ -277,7 +277,7 @@ export const atomicSwapBlocks: BlockType[] = [
     icon: Network,
     description: "Atomic swap from Solana to Starknet (SOL → ETH/STRK)",
     category: "swap",
-    technology: "Atomiq",
+    technology: "swap",
     inputs: [
       {
         type: "number",

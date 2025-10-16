@@ -109,8 +109,13 @@ const AvailablePieces: React.FC<{
   isAtomicSwap?: boolean;
 }> = ({ onDragStart, chainBlocks, isAtomicSwap = false }) => {
   const technologies = isAtomicSwap 
-    ? ["Multi-Chain", "Atomiq", "validation", "swap", "monitoring", "reporting"]
+    ? ["Multi-Chain", "swap", "validation", "monitoring", "reporting"]
     : getAvailableTechnologies();
+
+  // Debug logging
+  console.log("🐛 AvailablePieces - isAtomicSwap:", isAtomicSwap);
+  console.log("🐛 AvailablePieces - technologies:", technologies);
+  console.log("🐛 AvailablePieces - blocks to filter:", isAtomicSwap ? atomicSwapBlocks : blocks);
 
   return (
     <Card className="bg-white border-2 border-black rounded-xl shadow-[4px_4px_0_0_rgba(0,0,0,1)] hover:shadow-[6px_6px_0_0_rgba(0,0,0,1)] hover:translate-y-[-2px] transition-all duration-300">
