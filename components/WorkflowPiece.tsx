@@ -11,6 +11,7 @@ import {
 import { blocks } from "@/constants/workflows";
 import { atomicSwapBlocks } from "@/constants/atomicSwapBlocks";
 import { BlockType } from "@/types";
+import ContractBuilderBlock from "./ContractBuilderBlock";
 
 interface WorkflowPieceProps {
   block: BlockType;
@@ -50,6 +51,15 @@ const WorkflowPiece: React.FC<WorkflowPieceProps> = ({
     if (chainBlocks.length === 0) return true;
     const lastBlock = chainBlocks[chainBlocks.length - 1];
     
+    // Special case: Contract builder block is always compatible after wallet connect
+    if (block.id === "build_contract_agentic_stark") {
+      const hasWalletConnect = chainBlocks.some(b => b.id === "connect_wallet");
+      if (hasWalletConnect) {
+        console.log("🤖 Contract builder block is always compatible after wallet connect");
+        return true;
+      }
+    }
+    
     // Debug logging
     console.log("🐛 canBeAddedToChain debug:", {
       isAtomicSwap,
@@ -76,14 +86,32 @@ const WorkflowPiece: React.FC<WorkflowPieceProps> = ({
     return `Current chain expects: ${compatibleBlockNames}`;
   };
 
-  const PieceContent = () => (
-    <div
-      className={cn(
-        "relative",
-        "transition-transform duration-300",
-        !isChainPiece && !isGreyedOut && "hover:translate-y-[-4px]"
-      )}
-    >
+  const PieceContent = () => {
+    // Special handling for contract builder block
+    if (block.id === "build_contract_agentic_stark" && isChainPiece) {
+      return (
+        <div className="p-4 bg-white rounded-lg border-2 border-gray-200 min-h-[400px]">
+          <ContractBuilderBlock
+            onContractGenerated={(contractCode, contractName, contractType) => {
+              console.log("Contract generated:", { contractCode, contractName, contractType });
+              // You can handle the generated contract here
+            }}
+            onError={(error) => {
+              console.error("Contract generation error:", error);
+            }}
+          />
+        </div>
+      );
+    }
+
+    return (
+      <div
+        className={cn(
+          "relative",
+          "transition-transform duration-300",
+          !isChainPiece && !isGreyedOut && "hover:translate-y-[-4px]"
+        )}
+      >
       <svg
         width="100%"
         preserveAspectRatio="xMidYMid meet"
@@ -255,7 +283,8 @@ const WorkflowPiece: React.FC<WorkflowPieceProps> = ({
         </Button>
       )}
     </div>
-  );
+    );
+  };
 
   if (!isChainPiece) {
     return (

@@ -50,10 +50,10 @@ const LandingPage = () => {
 
           {/* Hero Section */}
           <h1 className="text-6xl sm:text-7xl font-black text-black max-w-3xl mx-auto leading-tight">
-            Batch Payments Made Simple 💸
+            Workflows Made Simple 💸
           </h1>
           <p className="text-xl text-gray-600 max-w-2xl mx-auto font-medium">
-            Build your payment workflow with our intuitive drag-and-drop
+            Build your workflows with our intuitive drag-and-drop
             interface. Send tokens to multiple recipients on Starknet with ease!
           </p>
 

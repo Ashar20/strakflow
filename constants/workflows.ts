@@ -449,6 +449,37 @@ export const blocks: BlockType[] = [
     ],
     compatibleWith: ["check_tx_status", "transaction_summary"],
   },
+  {
+    id: "build_contract_agentic_stark",
+    name: "Build Contract with Agentic Stark",
+    color: "from-purple-400 to-purple-600",
+    icon: Sparkles,
+    description: "Generate smart contract code using Agentic Stark AI based on natural language instructions",
+    category: "contract",
+    technology: "Agentic Stark",
+    inputs: [
+      {
+        type: "textarea",
+        label: "Contract Instructions",
+        placeholder: "Create a minimal counter-like contract with increment/decrement and a getter.",
+        required: true,
+      },
+      {
+        type: "select",
+        label: "Contract Type",
+        options: ["Cairo", "Solidity", "Auto-detect"],
+        required: true,
+        defaultValue: "Cairo",
+      },
+      {
+        type: "text",
+        label: "Contract Name",
+        placeholder: "MyContract",
+        required: false,
+      },
+    ],
+    compatibleWith: ["deploy_contract", "check_tx_status", "validate_wallet", "connect_wallet"],
+  },
 ];
 
 // Helper function to get blocks by technology
