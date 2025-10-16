@@ -100,13 +100,12 @@ export async function POST(request: NextRequest) {
 
     return NextResponse.json({
       success: true,
-      transactionHash: transferResponse.transactionHash || transferResponse.transaction_hash,
+      transactionHash: transferResponse,
       details: {
         from: wallet.publicKey,
         to: receiverAddress,
         amount,
         token,
-        ...transferResponse,
       },
     });
   } catch (error) {
@@ -130,8 +129,8 @@ export async function POST(request: NextRequest) {
     if (errorMessage.includes("u256_sub Overflow") || errorMessage.includes("argent/multicall-failed")) {
       return NextResponse.json(
         {
-          error: `Insufficient ${token} balance. You don't have enough ${token} tokens to complete this transfer.`,
-          details: `Please check your wallet balance and try transferring a smaller amount, or add more ${token} to your wallet.`,
+          error: `Insufficient balance. You don't have enough tokens to complete this transfer.`,
+          details: `Please check your wallet balance and try transferring a smaller amount, or add more tokens to your wallet.`,
           errorType: "INSUFFICIENT_BALANCE",
         },
         { status: 400 }

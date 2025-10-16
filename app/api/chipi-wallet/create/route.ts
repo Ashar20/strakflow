@@ -46,8 +46,8 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({
       success: true,
       wallet: {
-        address: wallet.normalizedPublicKey || wallet.publicKey,
-        publicKey: wallet.publicKey,
+        address: wallet.wallet.normalizedPublicKey || wallet.wallet.publicKey,
+        publicKey: wallet.wallet.publicKey,
       }
     });
   } catch (error: any) {
