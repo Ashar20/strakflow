@@ -9,6 +9,7 @@ import {
   TooltipTrigger,
 } from "@/components/ui/tooltip";
 import { blocks } from "@/constants/workflows";
+import { atomicSwapBlocks } from "@/constants/atomicSwapBlocks";
 import { BlockType } from "@/types";
 
 interface WorkflowPieceProps {
@@ -22,6 +23,7 @@ interface WorkflowPieceProps {
   onValueChange?: (key: string, value: string) => void;
   onRemove?: () => void;
   chainBlocks?: BlockType[];
+  isAtomicSwap?: boolean;
 }
 
 const WorkflowPiece: React.FC<WorkflowPieceProps> = ({
@@ -35,6 +37,7 @@ const WorkflowPiece: React.FC<WorkflowPieceProps> = ({
   onValueChange,
   onRemove,
   chainBlocks = [],
+  isAtomicSwap = false,
 }) => {
   const baseHeight = 180;
   const inputHeight =
@@ -55,7 +58,8 @@ const WorkflowPiece: React.FC<WorkflowPieceProps> = ({
   const getCompatibleBlocks = () => {
     if (chainBlocks.length === 0) return "Can be used as first block";
     const lastBlock = chainBlocks[chainBlocks.length - 1];
-    const compatibleBlockNames = blocks
+    const availableBlocks = isAtomicSwap ? atomicSwapBlocks : blocks;
+    const compatibleBlockNames = availableBlocks
       .filter((b) => lastBlock.compatibleWith.includes(b.id))
       .map((b) => b.name)
       .join(", ");

@@ -35,7 +35,7 @@ export const atomicSwapBlocks: BlockType[] = [
         defaultValue: "ArgentX",
       },
     ],
-    compatibleWith: ["select_swap_pair", "get_quote", "btc_to_starknet", "starknet_to_btc", "solana_to_starknet"],
+    compatibleWith: ["select_swap_pair", "get_quote", "execute_swap", "btc_to_starknet", "starknet_to_btc", "solana_to_starknet"],
   },
   {
     id: "select_swap_pair",

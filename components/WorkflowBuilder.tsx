@@ -163,6 +163,7 @@ const AvailablePieces: React.FC<{
                         block={block}
                         onDragStart={onDragStart(block)}
                         chainBlocks={chainBlocks}
+                        isAtomicSwap={isAtomicSwap}
                       />
                     </div>
                   ))}
@@ -445,6 +446,7 @@ const WorkflowBuilder: React.FC<WorkflowBuilderProps> = ({ wallet, isAtomicSwap 
                           }
                           onRemove={() => removeBlock(index)}
                           chainBlocks={chainBlocks}
+                          isAtomicSwap={isAtomicSwap}
                         />
                       </div>
                     ))}
