@@ -106,14 +106,17 @@ const ScrollableArea: React.FC<{
 const AvailablePieces: React.FC<{
   onDragStart: (block: BlockType) => () => void;
   chainBlocks: BlockType[];
-}> = ({ onDragStart, chainBlocks }) => {
-  const technologies = getAvailableTechnologies();
+  isAtomicSwap?: boolean;
+}> = ({ onDragStart, chainBlocks, isAtomicSwap = false }) => {
+  const technologies = isAtomicSwap 
+    ? ["Multi-Chain", "Atomiq", "validation", "swap", "monitoring", "reporting"]
+    : getAvailableTechnologies();
 
   return (
     <Card className="bg-white border-2 border-black rounded-xl shadow-[4px_4px_0_0_rgba(0,0,0,1)] hover:shadow-[6px_6px_0_0_rgba(0,0,0,1)] hover:translate-y-[-2px] transition-all duration-300">
       <CardHeader>
         <CardTitle className="text-black font-bold text-2xl">
-          Available Workflow Blocks
+          {isAtomicSwap ? "Available Atomic Swap Blocks" : "Available Workflow Blocks"}
         </CardTitle>
       </CardHeader>
       <CardContent>
@@ -147,7 +150,9 @@ const AvailablePieces: React.FC<{
             >
               <ScrollableArea>
                 <div className="flex gap-6">
-                  {getBlocksByTechnology(tech).map((block) => (
+                  {(isAtomicSwap ? atomicSwapBlocks : blocks)
+                    .filter((block) => block.technology === tech)
+                    .map((block) => (
                     <div key={block.id} className="flex-shrink-0">
                       <WorkflowPiece
                         block={block}
@@ -277,6 +282,11 @@ const WorkflowBuilder: React.FC<WorkflowBuilderProps> = ({ wallet, isAtomicSwap 
     alert("✅ Encryption key updated successfully! You can now try the transfer again.");
   };
 
+  // Get available technologies from blocks
+  const availableTechnologies = isAtomicSwap 
+    ? ["Multi-Chain", "Atomiq", "validation", "swap", "monitoring", "reporting"]
+    : getAvailableTechnologies();
+
   return (
     <div className="min-h-screen bg-[#FFFDFA] p-8">
       <div className="max-w-6xl mx-auto space-y-8">
@@ -364,7 +374,7 @@ const WorkflowBuilder: React.FC<WorkflowBuilderProps> = ({ wallet, isAtomicSwap 
           )}
         </div>
 
-        <AvailablePieces onDragStart={handleDragStart} chainBlocks={chainBlocks} />
+        <AvailablePieces onDragStart={handleDragStart} chainBlocks={chainBlocks} isAtomicSwap={isAtomicSwap} />
 
         <Card
           className="bg-white border-2 border-black rounded-xl shadow-[4px_4px_0_0_rgba(0,0,0,1)] hover:shadow-[6px_6px_0_0_rgba(0,0,0,1)] hover:translate-y-[-2px] transition-all duration-300"
