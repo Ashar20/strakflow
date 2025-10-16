@@ -21,8 +21,9 @@ const nextConfig = {
       };
 
       // Provide global variables
+      const webpack = require("webpack");
       config.plugins.push(
-        new config.webpack.ProvidePlugin({
+        new webpack.ProvidePlugin({
           process: "process/browser",
           Buffer: ["buffer", "Buffer"],
         })
