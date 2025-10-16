@@ -9,6 +9,9 @@
     "lint": "next lint"
   },
   "dependencies": {
+    "@atomiqlabs/chain-solana": "^11.0.0",
+    "@atomiqlabs/chain-starknet": "^5.1.7",
+    "@atomiqlabs/sdk": "^6.0.4",
     "@chipi-stack/backend": "^11.6.0",
     "@chipi-stack/nextjs": "^11.6.0",
     "@clerk/nextjs": "^6.33.4",
