@@ -11,15 +11,25 @@
 // Get testnet RPC URLs from environment
 export const getAtomicSwapRPCUrls = () => {
   return {
-    starknet: typeof window !== "undefined"
-      ? (process.env.NEXT_PUBLIC_ATOMIC_SWAP_STARKNET_RPC_URL || "https://starknet-sepolia.public.blastapi.io/rpc/v0_8")
-      : "https://starknet-sepolia.public.blastapi.io/rpc/v0_8",
-    bitcoin: typeof window !== "undefined"
-      ? (process.env.NEXT_PUBLIC_ATOMIC_SWAP_BITCOIN_RPC_URL || "https://blockstream.info/testnet/api")
-      : "https://blockstream.info/testnet/api",
-    solana: typeof window !== "undefined"
-      ? (process.env.NEXT_PUBLIC_ATOMIC_SWAP_SOLANA_RPC_URL || "https://api.devnet.solana.com")
-      : "https://api.devnet.solana.com",
+    starknet: process.env.REACT_APP_STARKNET_RPC_URL || "https://starknet-sepolia.public.blastapi.io/rpc/v0_8",
+    bitcoin: process.env.REACT_APP_UNISAT_API_URL || "https://open-api-testnet.unisat.io",
+    solana: process.env.REACT_APP_SOLANA_RPC_URL || "https://api.devnet.solana.com",
+  };
+};
+
+export const getAtomicSwapNetworks = () => {
+  return {
+    starknet: process.env.REACT_APP_STARKNET_NETWORK || "SEPOLIA",
+    bitcoin: process.env.REACT_APP_BITCOIN_NETWORK || "TESTNET", 
+    solana: process.env.REACT_APP_SOLANA_NETWORK || "DEVNET",
+  };
+};
+
+export const getAtomicSwapExplorers = () => {
+  return {
+    starknet: process.env.REACT_APP_STARKNET_BLOCK_EXPLORER || "https://sepolia.starkscan.co/tx/",
+    bitcoin: process.env.REACT_APP_BTC_BLOCK_EXPLORER || "https://mempool.space/testnet/tx/",
+    solana: process.env.REACT_APP_SOL_BLOCK_EXPLORER || "https://solscan.io/tx/",
   };
 };
 

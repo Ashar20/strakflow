@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { Wallet, ExternalLink, AlertCircle } from "lucide-react";
 import { connectWalletExtension, getInstalledStarknetWallets, getInstalledSolanaWallets } from "@/services/walletExtension";
+import { getAtomicSwapNetworks } from "@/services/atomicSwap";
 
 interface AtomicSwapWalletSelectorProps {
   onWalletConnected: (wallet: { address: string; type: string }) => void;
@@ -14,6 +15,8 @@ export default function AtomicSwapWalletSelector({
   const [isConnecting, setIsConnecting] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [selectedChain, setSelectedChain] = useState<"Starknet" | "Solana">("Starknet");
+  
+  const networks = getAtomicSwapNetworks();
 
   const handleWalletConnect = async (walletType: "ArgentX" | "Braavos" | "Phantom" | "Backpack") => {
     setIsConnecting(true);
@@ -26,9 +29,12 @@ export default function AtomicSwapWalletSelector({
       
       console.log(`✅ Successfully connected to ${walletType}:`, wallet.address);
       
+      const networks = getAtomicSwapNetworks();
+      const networkName = selectedChain === "Starknet" ? networks.starknet : networks.solana;
+      
       onWalletConnected({
         address: wallet.address,
-        type: `${walletType} (Atomic Swap - Testnet)`,
+        type: `${walletType} (Atomic Swap - ${networkName})`,
       });
     } catch (err: any) {
       console.error(`❌ Failed to connect to ${walletType}:`, err);
@@ -99,7 +105,7 @@ export default function AtomicSwapWalletSelector({
               }`}
             >
               <div className="font-semibold text-gray-900">Starknet</div>
-              <div className="text-xs text-gray-500 mt-1">Sepolia Testnet</div>
+              <div className="text-xs text-gray-500 mt-1">{networks.starknet} Testnet</div>
             </button>
             <button
               onClick={() => setSelectedChain("Solana")}
@@ -110,7 +116,7 @@ export default function AtomicSwapWalletSelector({
               }`}
             >
               <div className="font-semibold text-gray-900">Solana</div>
-              <div className="text-xs text-gray-500 mt-1">Devnet</div>
+              <div className="text-xs text-gray-500 mt-1">{networks.solana} Testnet</div>
             </button>
           </div>
         </div>
