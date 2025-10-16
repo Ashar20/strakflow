@@ -3,8 +3,7 @@
 import { useState, useEffect } from "react";
 import dynamic from "next/dynamic";
 import { NavigationTabs } from "@/components/NavigationTabs";
-import WalletSelector from "@/components/WalletSelector";
-import ChippiWalletCreation from "@/components/ChippiWalletCreation";
+import AtomicSwapWalletSelector from "@/components/AtomicSwapWalletSelector";
 import { SignedIn, SignedOut } from "@clerk/nextjs";
 
 // Dynamically import WorkflowBuilder to use atomic swap blocks
@@ -19,7 +18,6 @@ const AtomicSwapBuilder = dynamic(
 export default function AtomicSwapPage() {
   const [wallet, setWallet] = useState<{ address: string; type: string } | null>(null);
   const [isLoading, setIsLoading] = useState(true);
-  const [showChippiCreation, setShowChippiCreation] = useState(false);
 
   // Load wallet from localStorage (shared with main workflow)
   useEffect(() => {
@@ -38,18 +36,15 @@ export default function AtomicSwapPage() {
   }, []);
 
   const handleWalletConnected = (walletData: { address: string; type: string }) => {
-    console.log("🎯 handleWalletConnected called with:", walletData);
+    console.log("🎯 Atomic Swap - handleWalletConnected called with:", walletData);
     setWallet(walletData);
     // Save to localStorage (shared with main workflow)
     localStorage.setItem("connectedWallet", JSON.stringify(walletData));
-    setShowChippiCreation(false);
   };
 
   const handleDisconnect = () => {
     setWallet(null);
     localStorage.removeItem("connectedWallet");
-    localStorage.removeItem("wallet_private_key");
-    setShowChippiCreation(false);
   };
 
   if (isLoading) {
@@ -60,47 +55,9 @@ export default function AtomicSwapPage() {
     );
   }
 
-  // Show Chippi Pay wallet creation if user is signed in and selected Chippi Pay
-  if (showChippiCreation && !wallet) {
-    return (
-      <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 flex items-center justify-center p-4">
-        <div className="bg-white rounded-2xl shadow-2xl p-8 max-w-2xl w-full">
-          <SignedIn>
-            <ChippiWalletCreation onWalletConnected={handleWalletConnected} />
-            <button
-              onClick={() => setShowChippiCreation(false)}
-              className="mt-4 w-full px-4 py-2 text-gray-600 hover:text-gray-900 transition-colors"
-            >
-              ← Back to wallet options
-            </button>
-          </SignedIn>
-          <SignedOut>
-            <div className="text-center">
-              <h2 className="text-2xl font-bold text-gray-900 mb-4">Sign In Required</h2>
-              <p className="text-gray-600 mb-6">
-                Please sign in using the buttons in the header to create a Chippi Pay wallet.
-              </p>
-              <button
-                onClick={() => setShowChippiCreation(false)}
-                className="px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
-              >
-                ← Back to wallet options
-              </button>
-            </div>
-          </SignedOut>
-        </div>
-      </div>
-    );
-  }
-
+  // Show atomic swap wallet selector if no wallet connected
   if (!wallet) {
-    return <WalletSelector onWalletConnected={(wallet) => {
-      if (wallet.type === "chippipay") {
-        setShowChippiCreation(true);
-      } else {
-        handleWalletConnected(wallet);
-      }
-    }} />;
+    return <AtomicSwapWalletSelector onWalletConnected={handleWalletConnected} />;
   }
 
   return (

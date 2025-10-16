@@ -1,7 +1,27 @@
 /**
  * Atomic Swap Service using Atomiq SDK
  * Handles cross-chain swaps between Starknet, Bitcoin, and Solana
+ * 
+ * NOTE: Atomic Swap uses TESTNET for all chains
+ * - Starknet: Sepolia Testnet
+ * - Bitcoin: Bitcoin Testnet
+ * - Solana: Solana Devnet
  */
+
+// Get testnet RPC URLs from environment
+export const getAtomicSwapRPCUrls = () => {
+  return {
+    starknet: typeof window !== "undefined"
+      ? (process.env.NEXT_PUBLIC_ATOMIC_SWAP_STARKNET_RPC_URL || "https://starknet-sepolia.public.blastapi.io/rpc/v0_8")
+      : "https://starknet-sepolia.public.blastapi.io/rpc/v0_8",
+    bitcoin: typeof window !== "undefined"
+      ? (process.env.NEXT_PUBLIC_ATOMIC_SWAP_BITCOIN_RPC_URL || "https://blockstream.info/testnet/api")
+      : "https://blockstream.info/testnet/api",
+    solana: typeof window !== "undefined"
+      ? (process.env.NEXT_PUBLIC_ATOMIC_SWAP_SOLANA_RPC_URL || "https://api.devnet.solana.com")
+      : "https://api.devnet.solana.com",
+  };
+};
 
 export interface SwapPair {
   fromChain: "Starknet" | "Bitcoin" | "Solana";
